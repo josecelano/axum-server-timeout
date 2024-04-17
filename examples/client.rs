@@ -20,6 +20,11 @@ async fn main() {
             .set_write_timeout(Some(Duration::from_secs(120)))
             .expect("Set write timeout");
 
+        // Sleep for some duration to observe the server's behavior.
+        // The server should close the connection when no requests are sent.
+        println!("Sleeping 15 seconds ...");
+        std::thread::sleep(Duration::from_secs(15));
+
         println!("Client read timeout: {:?}", stream.read_timeout());
         println!("Client write timeout: {:?}", stream.write_timeout());
 
@@ -32,11 +37,6 @@ async fn main() {
         // Send the same request taking longer than the server timeout.
         // The client should panic because the server closes the connection.
         send_request_slowly(&mut stream, request.as_bytes()).await;
-
-        // Sleep for some duration to observe the server's behavior.
-        // The server should close the connection when no requests are sent.
-        println!("Sleeping 15 seconds ...");
-        std::thread::sleep(Duration::from_secs(15));
 
         println!("Client stream: {stream:?}");
     } else {

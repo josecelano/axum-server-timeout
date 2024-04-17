@@ -24,13 +24,36 @@ The goal is to just open a connection without sending any requests. The server s
 
 I've added other server implementations using other frameworks to also check their behavior.
 
+It only works for [ActixWeb](https://actix.rs/) so far.
+
+ActixWeb returns a `408 Request Timeout` for the first request and panics for the second one.
+
+```output
+Connected to the server: http://127.0.0.1:3000!
+Sleeping 15 seconds ...
+Client read timeout: Ok(Some(120s))
+Client write timeout: Ok(Some(120s))
+New request ...
+Response OK: 107 bytes
+HTTP/1.1 408 Request Timeout
+content-length: 0
+connection: close
+date: Wed, 17 Apr 2024 17:18:43 GMT
+
+
+New request ...
+thread 'main' panicked at examples/client.rs:53:10:
+Failed to write to stream: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
 ## Client
 
-There is a client that makes two requests and then waits some seconds.
+There is a client example that waits some seconds and then makes two requests.
 
+- First, the client waits for some seconds to test if the server closes the connection.
 - The first request is a normal `GET` request to test the connection to the server.
 - The second request is a slow request to test server timeout. The timeout for sending the request headers.
-- Finally, the client waits for some seconds to test if the server closes the connection.
 
 Run the client:
 
@@ -69,8 +92,6 @@ Run the server:
 
 ```output
 cargo run --example axum_server
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/examples/server`
 Starting server on: http://127.0.0.1:3000 ...
 Server bound to address: http://127.0.0.1:3000
 New request ...
@@ -82,8 +103,6 @@ Run the server:
 
 ```output
 ROCKET_KEEP_ALIVE=1 ROCKET_PORT=3000 cargo run --example rocket_server
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
-     Running `target/debug/examples/rocket_server`
 🔧 Configured for debug.
    >> address: 127.0.0.1
    >> port: 3000
@@ -112,4 +131,13 @@ GET /:
    >> Matched: (hello) GET /
    >> Outcome: Success(200 OK)
    >> Response succeeded.
+```
+
+## Actix Web
+
+Run the server:
+
+```output
+cargo run --example actix_web_server
+Starting server on: http://127.0.0.1:3000 ...
 ```

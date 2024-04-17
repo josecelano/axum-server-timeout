@@ -12,6 +12,7 @@ Related to:
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.client_request_timeout>
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.tls_handshake_timeout>
 - <https://gist.github.com/programatik29/36d371c657392fd7f322e7342957b6d1>
+- <https://github.com/rwf2/Rocket/discussions/2774>
 
 I'm trying to setup [axum-server](https://github.com/programatik29/axum-server/) with a timeout.
 

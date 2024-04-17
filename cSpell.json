@@ -2,6 +2,9 @@
     "words": [
         "debuginfo",
         "lcov",
+        "msgpack",
+        "nosniff",
+        "SAMEORIGIN",
         "unoptimized"
     ],
     "enableFiletypes": [

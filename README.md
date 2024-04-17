@@ -1,4 +1,4 @@
-# Example axum-server with timeouts
+# Example Axum-server with timeouts
 
 [![Testing](https://github.com/josecelano/axum-server-timeout/actions/workflows/testing.yaml/badge.svg)](https://github.com/josecelano/axum-server-timeout/actions/workflows/testing.yaml)
 
@@ -21,18 +21,15 @@ This example set a timeout in the server for sending the headers, by simulating 
 
 The goal is to just open a connection without sending any requests. The server should close the connection after a while.
 
-Run the server:
+I've added other server implementations using other frameworks to also check their behavior.
 
-```output
-cargo run --example server
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/examples/server`
-Starting server on: http://127.0.0.1:3000 ...
-Server bound to address: http://127.0.0.1:3000
-New request ...
-New request ...
-New request ...
-```
+## Client
+
+There is a client that makes two requests and then waits some seconds.
+
+- The first request is a normal `GET` request to test the connection to the server.
+- The second request is a slow request to test server timeout. The timeout for sending the request headers.
+- Finally, the client waits for some seconds to test if the server closes the connection.
 
 Run the client:
 
@@ -57,10 +54,61 @@ Failed to write to stream: Os { code: 104, kind: ConnectionReset, message: "Conn
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ```
 
-You can comment this line in the client:
+You can comment the "slow" request line in the client:
 
 ```rust
-send_request_slowly(&mut stream, request.as_bytes()).await;
+// send_request_slowly(&mut stream, request.as_bytes()).await;
 ```
 
-And you will see how the connection is still open after 15 seconds without sending any requests.
+To check what happens if the client is idle without sending any requests.
+
+## Axum-server
+
+Run the server:
+
+```output
+cargo run --example axum_server
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/examples/server`
+Starting server on: http://127.0.0.1:3000 ...
+Server bound to address: http://127.0.0.1:3000
+New request ...
+```
+
+## Rocket
+
+Run the server:
+
+```output
+ROCKET_KEEP_ALIVE=1 ROCKET_PORT=3000 cargo run --example rocket_server
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/examples/rocket_server`
+🔧 Configured for debug.
+   >> address: 127.0.0.1
+   >> port: 3000
+   >> workers: 32
+   >> max blocking threads: 512
+   >> ident: Rocket
+   >> IP header: X-Real-IP
+   >> limits: bytes = 8KiB, data-form = 2MiB, file = 1MiB, form = 32KiB, json = 1MiB, msgpack = 1MiB, string = 8KiB
+   >> temp dir: /tmp
+   >> http/2: true
+   >> keep-alive: 1s
+   >> tls: disabled
+   >> shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+   >> log level: normal
+   >> cli colors: true
+📬 Routes:
+   >> (hello) GET /
+📡 Fairings:
+   >> Shield (liftoff, response, singleton)
+🛡️ Shield:
+   >> X-Frame-Options: SAMEORIGIN
+   >> X-Content-Type-Options: nosniff
+   >> Permissions-Policy: interest-cohort=()
+🚀 Rocket has launched from http://127.0.0.1:3000
+GET /:
+   >> Matched: (hello) GET /
+   >> Outcome: Success(200 OK)
+   >> Response succeeded.
+```

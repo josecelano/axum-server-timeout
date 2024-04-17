@@ -1,0 +1,12 @@
+{
+    "words": [
+        "debuginfo",
+        "lcov",
+        "unoptimized"
+    ],
+    "enableFiletypes": [
+        "dockerfile",
+        "shellscript",
+        "toml"
+    ]
+}

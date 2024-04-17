@@ -1,0 +1,8 @@
+.env
+/.coverage/
+/.idea/
+/.vscode/launch.json
+/flamegraph.svg
+/target
+callgrind.out
+perf.data*

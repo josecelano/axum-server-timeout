@@ -1,14 +1,19 @@
 pub mod slowloris;
 
+use axum::error_handling::HandleErrorLayer;
 use axum::routing::get;
-use axum::Router;
+use axum::{BoxError, Router};
 use axum_server::Server;
+use hyper::StatusCode;
 use std::net::{SocketAddr, TcpListener};
 use std::time::Duration;
+use tower::{timeout::TimeoutLayer, ServiceBuilder};
 
 use hyper_util::rt::TokioTimer;
 
 use crate::server::slowloris::TimeoutAcceptor;
+
+const TIMEOUT: Duration = Duration::from_secs(5);
 
 /// # Panics
 ///
@@ -25,7 +30,15 @@ pub async fn start(bind_to: &SocketAddr) {
 
     let server = from_tcp_with_timeouts(socket);
 
-    let app = Router::new().route("/", get(handler));
+    let app = Router::new().route("/", get(handler)).layer(
+        ServiceBuilder::new()
+            // this middleware goes above `TimeoutLayer` because it will receive
+            // errors returned by `TimeoutLayer`
+            .layer(HandleErrorLayer::new(|_: BoxError| async {
+                StatusCode::REQUEST_TIMEOUT
+            }))
+            .layer(TimeoutLayer::new(TIMEOUT)),
+    );
 
     server
         .acceptor(TimeoutAcceptor)

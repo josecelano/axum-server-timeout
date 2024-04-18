@@ -13,6 +13,10 @@ Related to:
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.tls_handshake_timeout>
 - <https://gist.github.com/programatik29/36d371c657392fd7f322e7342957b6d1>
 - <https://github.com/rwf2/Rocket/discussions/2774>
+- <https://github.com/rwf2/Rocket/issues/1405>
+- <https://github.com/hyperium/hyper/issues/1628>
+- <https://hexadix.com/slowloris-dos-attack-mitigation-nginx-web-server/>
+- <https://www.acunetix.com/blog/articles/slow-http-dos-attacks-mitigate-apache-http-server/>
 
 I'm trying to setup [axum-server](https://github.com/programatik29/axum-server/) with a timeout.
 
@@ -141,3 +145,12 @@ Run the server:
 cargo run --example actix_web_server
 Starting server on: http://127.0.0.1:3000 ...
 ```
+
+## Mitigating Slowloris DoS Attack with proxies
+
+I'm you are using a proxy ([Nginx](https://nginx.org/en/) or [Apache](https://httpd.apache.org/)) it seems you can mitigate this attack with the proxy configuration:
+
+- <https://www.nginx.com/blog/mitigating-ddos-attacks-with-nginx-and-nginx-plus/>
+- <https://blog.imkhoi.com/posts/2023/10/slowloris-ddos-and-how-to-mitigate-with-nginx/>
+- <https://hexadix.com/slowloris-dos-attack-mitigation-nginx-web-server/>
+- <https://www.acunetix.com/blog/articles/slow-http-dos-attacks-mitigate-apache-http-server/>

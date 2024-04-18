@@ -5,6 +5,7 @@
         "msgpack",
         "nosniff",
         "SAMEORIGIN",
+        "Slowloris",
         "unoptimized"
     ],
     "enableFiletypes": [

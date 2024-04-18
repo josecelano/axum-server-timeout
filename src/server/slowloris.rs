@@ -1,11 +1,8 @@
-use axum::routing::get;
-use axum::Router;
 use axum_server::accept::Accept;
 use futures_util::{ready, Future};
 use http_body::{Body, Frame};
 use hyper::Response;
 use pin_project_lite::pin_project;
-use std::net::SocketAddr;
 use std::time::Duration;
 use std::{
     future::Ready,
@@ -20,54 +17,10 @@ use tokio::{
 };
 use tower::Service;
 
-use hyper_util::rt::TokioTimer;
-
 const TIMEOUT: Duration = Duration::from_secs(5);
 
-/// # Panics
-///
-/// Will panic if it can get the local server address
-pub async fn start(bind_to: &SocketAddr) {
-    let socket =
-        std::net::TcpListener::bind(bind_to).expect("Could not bind tcp_listener to address.");
-
-    let server_address = socket
-        .local_addr()
-        .expect("Could not get local_addr from tcp_listener.");
-
-    println!("Server bound to address: http://{server_address}"); // DevSkim: ignore DS137138
-
-    let mut server = axum_server::from_tcp(socket);
-
-    server.http_builder().http1().timer(TokioTimer::new());
-    server.http_builder().http2().timer(TokioTimer::new());
-
-    server
-        .http_builder()
-        .http1()
-        .header_read_timeout(Duration::from_secs(1));
-    server
-        .http_builder()
-        .http2()
-        .keep_alive_timeout(Duration::from_secs(1))
-        .keep_alive_interval(Duration::from_secs(1));
-
-    let app = Router::new().route("/", get(handler));
-
-    server
-        .acceptor(TimeoutAcceptor)
-        .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
-        .await
-        .expect("Axum server crashed.");
-}
-
-pub async fn handler() -> String {
-    println!("New request ...");
-    "Hello. world!".to_string()
-}
-
 #[derive(Clone)]
-struct TimeoutAcceptor;
+pub struct TimeoutAcceptor;
 
 impl<I, S> Accept<I, S> for TimeoutAcceptor {
     type Stream = TimeoutStream<I>;
@@ -85,7 +38,7 @@ impl<I, S> Accept<I, S> for TimeoutAcceptor {
 }
 
 #[derive(Clone)]
-struct TimeoutService<S> {
+pub struct TimeoutService<S> {
     inner: S,
     sender: UnboundedSender<TimerSignal>,
 }
@@ -117,7 +70,7 @@ where
 }
 
 pin_project! {
-    struct TimeoutServiceFuture<F> {
+    pub struct TimeoutServiceFuture<F> {
         #[pin]
         inner: F,
         sender: Option<UnboundedSender<TimerSignal>>,
@@ -157,7 +110,7 @@ enum TimerSignal {
 }
 
 pin_project! {
-    struct TimeoutBody<B> {
+    pub struct TimeoutBody<B> {
         #[pin]
         inner: B,
         sender: UnboundedSender<TimerSignal>,
@@ -203,7 +156,7 @@ impl<B: Body> Body for TimeoutBody<B> {
     }
 }
 
-struct TimeoutStream<IO> {
+pub struct TimeoutStream<IO> {
     inner: IO,
     // hyper requires unpin
     sleep: Pin<Box<Sleep>>,

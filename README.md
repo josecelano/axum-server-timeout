@@ -8,6 +8,7 @@ Related to:
 - <https://github.com/torrust/torrust-tracker/issues/612>
 - <https://github.com/torrust/torrust-tracker/issues/613>
 - <https://github.com/tokio-rs/axum/discussions/1383>
+- <https://github.com/tokio-rs/axum/discussions/2716>
 - <https://github.com/hyperium/hyper/issues/3178>
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.client_request_timeout>
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.tls_handshake_timeout>

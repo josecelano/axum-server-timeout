@@ -7,6 +7,11 @@ edition = "2021"
 actix-web = "4.5.1"
 axum = "0.7.5"
 axum-server = "0.6.0"
+futures-util = "0.3.30"
+http-body = "1.0.0"
+hyper = { version = "1.3.1", features = ["client"] }
 hyper-util = { version = "0.1.3", features = ["http1", "http2", "tokio"] }
+pin-project-lite = "0.2.14"
 rocket = "0.5.0"
 tokio = { version = "1.37.0", features = ["rt-multi-thread"] }
+tower = "0.4.13"

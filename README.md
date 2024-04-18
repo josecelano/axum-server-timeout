@@ -101,6 +101,35 @@ Server bound to address: http://127.0.0.1:3000
 New request ...
 ```
 
+The patch proposed [here](https://gist.github.com/programatik29/36d371c657392fd7f322e7342957b6d1) seems to work partially. It closes the connection but it does not return a `408 Request Timeout` response.
+
+The client output with ActixWeb server:
+
+```output
+Connected to the server: http://127.0.0.1:3000!
+Sleeping 15 seconds without sending any requests ...
+Send request ... no response
+thread 'main' panicked at examples/client.rs:45:14:
+called `Result::unwrap()` on an `Err` value: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+The client output with patched Axum-server:
+
+```output
+Connected to the server: http://127.0.0.1:3000!
+Sleeping 15 seconds without sending any requests ...
+Send request ... response size: 107 bytes
+HTTP/1.1 408 Request Timeout
+content-length: 0
+connection: close
+date: Thu, 18 Apr 2024 15:26:51 GMT
+
+thread 'main' panicked at examples/client.rs:43:14:
+called `Result::unwrap()` on an `Err` value: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
 ## Rocket
 
 Run the server:

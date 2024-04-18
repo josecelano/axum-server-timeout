@@ -22,21 +22,25 @@ async fn main() {
 
         // Sleep for some duration to observe the server's behavior.
         // The server should close the connection when no requests are sent.
-        println!("Sleeping 15 seconds ...");
+        println!("Sleeping 15 seconds without sending any requests ...");
         std::thread::sleep(Duration::from_secs(15));
 
-        println!("Client read timeout: {:?}", stream.read_timeout());
-        println!("Client write timeout: {:?}", stream.write_timeout());
+        //println!("Client read timeout: {:?}", stream.read_timeout());
+        //println!("Client write timeout: {:?}", stream.write_timeout());
 
-        let request = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"; // Extra line break is  needed.
+        let request = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"; // Extra line break is needed.
 
         // Send an HTTP GET request to the root endpoint (fast request)
         // This is only to confirm the client and server are working fine.
-        send_request(&mut stream, request.as_bytes());
+        send_request(&mut stream, request.as_bytes()).unwrap();
+
+        stream.take_error().expect("No error was expected...");
 
         // Send the same request taking longer than the server timeout.
         // The client should panic because the server closes the connection.
-        send_request_slowly(&mut stream, request.as_bytes()).await;
+        send_request_slowly(&mut stream, request.as_bytes())
+            .await
+            .unwrap();
 
         println!("Client stream: {stream:?}");
     } else {
@@ -44,40 +48,49 @@ async fn main() {
     }
 }
 
-fn send_request(stream: &mut TcpStream, request: &[u8]) {
-    println!("New request ...");
+fn send_request(stream: &mut TcpStream, request: &[u8]) -> Result<(), std::io::Error> {
+    print!("Send request ... ");
 
-    stream
-        .write_all(request)
-        .expect("Failed to write to stream");
+    stream.write_all(request)?;
+    stream.flush()?;
 
     read_response(stream);
+
+    Ok(())
 }
 
-async fn send_request_slowly(stream: &mut TcpStream, request: &[u8]) {
-    println!("New slow request ...");
+async fn send_request_slowly(stream: &mut TcpStream, request: &[u8]) -> Result<(), std::io::Error> {
+    print!("Send slow request ...");
 
     for &byte in request {
-        stream
-            .write_all(&[byte])
-            .expect("Failed to write to stream");
+        stream.write_all(&[byte])?;
+        stream.flush()?;
 
         // Sleep for a short duration between bytes
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
     read_response(stream);
+
+    Ok(())
 }
 
 fn read_response(stream: &mut TcpStream) {
     let mut buffer = vec![0; 1_048_576];
+
     let result = stream.read(&mut buffer);
 
     match result {
-        Ok(size) => println!(
-            "Response OK: {size:#?} bytes\n{}",
-            String::from_utf8_lossy(&buffer)
-        ),
-        Err(err) => println!("Response Error: {err:#?}"),
+        Ok(size) => {
+            if size != 0 {
+                println!(
+                    "response size: {size:#?} bytes\n{}",
+                    String::from_utf8_lossy(&buffer)
+                );
+            } else {
+                println!("no response");
+            }
+        }
+        Err(err) => println!("Error reading response buffer: {err:#?}"),
     }
 }

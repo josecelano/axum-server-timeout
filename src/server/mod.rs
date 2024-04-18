@@ -8,6 +8,7 @@ use hyper::StatusCode;
 use std::net::{SocketAddr, TcpListener};
 use std::time::Duration;
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
+use tower_http::trace::TraceLayer;
 
 use hyper_util::rt::TokioTimer;
 
@@ -30,15 +31,18 @@ pub async fn start(bind_to: &SocketAddr) {
 
     let server = from_tcp_with_timeouts(socket);
 
-    let app = Router::new().route("/", get(handler)).layer(
-        ServiceBuilder::new()
-            // this middleware goes above `TimeoutLayer` because it will receive
-            // errors returned by `TimeoutLayer`
-            .layer(HandleErrorLayer::new(|_: BoxError| async {
-                StatusCode::REQUEST_TIMEOUT
-            }))
-            .layer(TimeoutLayer::new(TIMEOUT)),
-    );
+    let app = Router::new()
+        .route("/", get(handler))
+        .layer(TraceLayer::new_for_http())
+        .layer(
+            ServiceBuilder::new()
+                // this middleware goes above `TimeoutLayer` because it will receive
+                // errors returned by `TimeoutLayer`
+                .layer(HandleErrorLayer::new(|_: BoxError| async {
+                    StatusCode::REQUEST_TIMEOUT
+                }))
+                .layer(TimeoutLayer::new(TIMEOUT)),
+        );
 
     server
         .acceptor(TimeoutAcceptor)

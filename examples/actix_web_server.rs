@@ -13,7 +13,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| App::new().route("/", web::get().to(hello)))
         .bind(("127.0.0.1", 3000))?
-        .client_request_timeout(Duration::from_secs(1))
+        .client_request_timeout(Duration::from_secs(5))
         .run()
         .await
 }

@@ -10,6 +10,7 @@ Related to:
 - <https://github.com/tokio-rs/axum/discussions/1383>
 - <https://github.com/tokio-rs/axum/discussions/2716>
 - <https://github.com/hyperium/hyper/issues/3178>
+- <https://github.com/actix/actix-web/discussions/3337>
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.client_request_timeout>
 - <https://docs.rs/actix-web/latest/actix_web/struct.HttpServer.html#method.tls_handshake_timeout>
 - <https://gist.github.com/programatik29/36d371c657392fd7f322e7342957b6d1>

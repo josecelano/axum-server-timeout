@@ -5,6 +5,7 @@
 Related to:
 
 - <https://github.com/programatik29/axum-server/issues/116>
+- <https://github.com/torrust/torrust-tracker/issues/2776>
 - <https://github.com/torrust/torrust-tracker/issues/612>
 - <https://github.com/torrust/torrust-tracker/issues/613>
 - <https://github.com/tokio-rs/axum/discussions/1383>
@@ -30,7 +31,9 @@ The goal is to just open a connection without sending any requests. The server s
 
 I've added other server implementations using other frameworks to also check their behavior.
 
-It only works for [ActixWeb](https://actix.rs/) so far.
+**Update (2026-11):** fixed in `axum-server` 0.9.0, which adds
+`Server::first_request_timeout`; see [Axum-server 0.9](#axum-server-09). The history below describes
+`axum-server` 0.6 to 0.8, where it only worked for [ActixWeb](https://actix.rs/) and with a copy of a gist.
 
 ActixWeb returns a `408 Request Timeout` for the first request and panics for the second one.
 
@@ -148,6 +151,29 @@ thread 'main' panicked at examples/client.rs:45:14:
 called `Result::unwrap()` on an `Err` value: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ```
+
+## Axum-server 0.9
+
+`axum-server` 0.9.0 (2026-11-06) installs a Tokio timer by default and adds
+[`Server::first_request_timeout`](https://docs.rs/axum-server/0.9.0/axum_server/struct.Server.html#method.first_request_timeout),
+which closes a connection that has not sent a complete first request in time. The server in this repository now uses it
+(see `src/server/mod.rs`) and no longer needs the gist's `TimeoutAcceptor`, which was removed.
+
+Result with the same client (silent for 15 seconds, then a request):
+
+```output
+Connected to the server: http://127.0.0.1:3000!
+Sleeping 15 seconds without sending any requests ...
+Send request ... no response
+thread 'main' panicked at examples/client.rs:33:14:
+called `Result::unwrap()` on an `Err` value: Os { code: 32, kind: BrokenPipe, message: "Broken pipe" }
+```
+
+A timed probe that connects and sends nothing sees the server close the connection after 5.0 seconds.
+As with the old workaround, the server closes the connection and does not answer `408 Request Timeout`.
+
+The Torrust Tracker adopted this in [torrust/torrust-tracker#2776](https://github.com/torrust/torrust-tracker/issues/2776).
+There, the same fix also closes silent TLS connections and the health check API, which the old workaround did not cover.
 
 ## Rocket
 

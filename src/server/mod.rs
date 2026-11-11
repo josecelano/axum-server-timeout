@@ -1,5 +1,3 @@
-pub mod slowloris;
-
 use axum::error_handling::HandleErrorLayer;
 use axum::routing::get;
 use axum::{BoxError, Router};
@@ -12,9 +10,10 @@ use tower_http::trace::TraceLayer;
 
 use hyper_util::rt::TokioTimer;
 
-use crate::server::slowloris::TimeoutAcceptor;
-
 const TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Time a new connection has to send a complete first request.
+const FIRST_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// # Panics
 ///
@@ -29,7 +28,7 @@ pub async fn start(bind_to: &SocketAddr) {
 
     println!("Server bound to address: http://{server_address}"); // DevSkim: ignore DS137138
 
-    let server = from_tcp_with_timeouts(socket);
+    let server = from_tcp_with_timeouts(socket).expect("Could not create the server from the tcp_listener.");
 
     let app = Router::new()
         .route("/", get(handler))
@@ -45,14 +44,13 @@ pub async fn start(bind_to: &SocketAddr) {
         );
 
     server
-        .acceptor(TimeoutAcceptor)
         .serve(app.into_make_service_with_connect_info::<std::net::SocketAddr>())
         .await
         .expect("Axum server crashed.");
 }
 
-fn from_tcp_with_timeouts(socket: TcpListener) -> Server {
-    let mut server = axum_server::from_tcp(socket);
+fn from_tcp_with_timeouts(socket: TcpListener) -> std::io::Result<Server<SocketAddr>> {
+    let mut server = axum_server::from_tcp(socket)?;
 
     server.http_builder().http1().timer(TokioTimer::new());
     server.http_builder().http2().timer(TokioTimer::new());
@@ -67,7 +65,8 @@ fn from_tcp_with_timeouts(socket: TcpListener) -> Server {
         .keep_alive_timeout(Duration::from_secs(1))
         .keep_alive_interval(Duration::from_secs(1));
 
-    server
+    // axum-server 0.9: closes a connection that sends no complete first request in time.
+    Ok(server.first_request_timeout(FIRST_REQUEST_TIMEOUT))
 }
 
 async fn handler() -> String {

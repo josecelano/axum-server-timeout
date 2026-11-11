@@ -106,7 +106,7 @@ Server bound to address: http://127.0.0.1:3000
 New request ...
 ```
 
-The patch proposed [here](https://gist.github.com/programatik29/36d371c657392fd7f322e7342957b6d1) seems to work partially. It closes the connection but it does not return a `408 Request Timeout` response.
+With `axum-server` 0.6 to 0.8, the patch proposed [here](https://gist.github.com/programatik29/36d371c657392fd7f322e7342957b6d1) seemed to work partially. This repository used it until commit `eb383ef` (`src/server/slowloris.rs`, now removed). It closes the connection but it does not return a `408 Request Timeout` response.
 
 The client output with ActixWeb server:
 
@@ -141,7 +141,7 @@ called `Result::unwrap()` on an `Err` value: Os { code: 104, kind: ConnectionRes
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ```
 
-The client output with patched Axum-server:
+The client output with Axum-server 0.6 to 0.8 and the gist patch (`TimeoutAcceptor`, removed; see [Axum-server 0.9](#axum-server-09)):
 
 ```output
 Connected to the server: http://127.0.0.1:3000!

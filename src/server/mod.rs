@@ -28,7 +28,8 @@ pub async fn start(bind_to: &SocketAddr) {
 
     println!("Server bound to address: http://{server_address}"); // DevSkim: ignore DS137138
 
-    let server = from_tcp_with_timeouts(socket).expect("Could not create the server from the tcp_listener.");
+    let server =
+        from_tcp_with_timeouts(socket).expect("Could not create the server from the tcp_listener.");
 
     let app = Router::new()
         .route("/", get(handler))
